@@ -27,7 +27,10 @@ builder.Services.AddInfrastructureServices();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "Lancaster.Api", Version = "v1" });
+});
 
 var app = builder.Build();
 
@@ -45,18 +48,19 @@ using (var scope = app.Services.CreateAsyncScope())
     }
 }
 
-app.UseDeveloperExceptionPage();
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
+{
+    app.UseCustomExceptionHandler();
+}
 
 app.UseSerilogRequestLogging();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-app.UseCustomExceptionHandler();
+app.UseSwagger();
+app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Valuation Portal Api"));
 
 app.UseHttpsRedirection();
 
