@@ -3,6 +3,7 @@ using Markerstudy.Lancaster.Application;
 using Markerstudy.Lancaster.Infrastructure;
 using Markerstudy.Lancaster.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
@@ -29,7 +30,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "Lancaster.Api", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Lancaster.Api", Version = "v1" });
 });
 
 var app = builder.Build();
@@ -48,23 +49,31 @@ using (var scope = app.Services.CreateAsyncScope())
     }
 }
 
+app.UseSerilogRequestLogging();
+
+app.UseHttpsRedirection();
+
+app.UseSwagger();
+
 if (app.Environment.IsDevelopment())
 {
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Valuation Portal Api");
+    });
     app.UseDeveloperExceptionPage();
 }
 else
 {
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Valuation Portal Api");
+        c.RoutePrefix = string.Empty;
+    });
     app.UseCustomExceptionHandler();
 }
 
-app.UseSerilogRequestLogging();
-
-app.UseSwagger();
-app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Valuation Portal Api"));
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
+//app.UseAuthorization();
 
 app.MapControllers();
 
